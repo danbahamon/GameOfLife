@@ -16,7 +16,7 @@ namespace GameOfLife
         bool[,] universe = new bool[32, 16];
         int[,] neighbors = new int[32,16];
 
-
+        int TotalLiving = 0;
 
         bool isActive = false;
 
@@ -123,6 +123,8 @@ namespace GameOfLife
                 }
             }
 
+            TotalLiving = 0;
+
             //Apply rules to kill or Birth cells
             for (int y = 0; y < universe.GetLength(1); y++)
             {
@@ -134,6 +136,7 @@ namespace GameOfLife
                         if (neighbors[x, y] == 3)
                         {
                             universe[x, y] = true;
+                            TotalLiving++;
                         }
                     }
                     else
@@ -141,6 +144,7 @@ namespace GameOfLife
                         if (neighbors[x, y] == 2 || neighbors[x, y] == 3)
                         {
                             universe[x, y] = true;
+                            TotalLiving++;
                         }
                         else
                         {
@@ -160,6 +164,7 @@ namespace GameOfLife
 
             // Update status strip generations
             toolStripStatusLabelGenerations.Text = "Generations = " + generations.ToString();
+            livingCells.Text = "Living Cells =" + TotalLiving.ToString();
 
             // Tell Windows you need to repaint
             graphicsPanel1.Invalidate();
@@ -234,11 +239,23 @@ namespace GameOfLife
                 // CELL Y = MOUSE Y / CELL HEIGHT
                 int y = e.Y / cellHeight;
 
+
+                if(universe[x,y])
+                {
+                    TotalLiving--;
+                }
+                else
+                {
+                    TotalLiving++;
+                }
                 // Toggle the cell's state
                 universe[x, y] = !universe[x, y];
 
                 // Tell Windows you need to repaint
                 graphicsPanel1.Invalidate();
+
+
+                livingCells.Text = "Living Cells = " + TotalLiving.ToString();
             }
         }
 
@@ -259,10 +276,20 @@ namespace GameOfLife
 
         private void newToolStripButton_Click(object sender, EventArgs e)//New File
         {
+            ClearScreen();
+        }
+        private void newToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            ClearScreen();
+        }
+
+        private void ClearScreen()
+        {
             isActive = false;
             generations = 0;
             // Update status strip generations
             toolStripStatusLabelGenerations.Text = "Generations = " + generations.ToString();
+            livingCells.Text = "Living Cells = 0";
 
 
             //Set all bools to false;
@@ -296,8 +323,11 @@ namespace GameOfLife
             generations = 0;
             // Update status strip generations
             toolStripStatusLabelGenerations.Text = "Generations = " + generations.ToString();
+            
 
             isActive = false;
+
+            TotalLiving= 0;
 
             //Set all bools to true or false;
             for (int y = 0; y < universe.GetLength(1); y++)
@@ -308,6 +338,8 @@ namespace GameOfLife
                     if (rand.Next(0, 100) < 34)
                     {
                         universe[x, y] = true;
+
+                        TotalLiving++;
                     }
                     else
                     {
@@ -317,6 +349,8 @@ namespace GameOfLife
                 }
             }
 
+
+            livingCells.Text = "Living Cells = "+TotalLiving.ToString();
             // Tell Windows you need to repaint
             graphicsPanel1.Invalidate();
         }
@@ -356,6 +390,8 @@ namespace GameOfLife
                 
             }
         }
+
+        
     }
 }
 
@@ -370,13 +406,8 @@ namespace GameOfLife
     Living cells with more than 3 living neighbors die in the next generation.
     Living cells with 2 or 3 living neighbors live in the next generation.
     Dead cells with exactly 3 living neighbors live in the next generation.
-
-2) Start, Pause and Next menu items and tool strip buttons. The game should start running by clicking on a Start menu item or a tool strip button. The game should be pause by clicking on a Pause menu item or a tool strip button. If currently paused, the game can be advanced 1 generation by clicking on a Next menu item or a tool strip button.
-4) Emptying the universe. The universe should be emptied of all living cells through a New or Clear menu item.
 5) Saving the current universe to a text file. The current state and size of the universe should be able to be saved in PlainText file format. The file name should be chosen by the user with a save file dialog box.
 6) Opening a previously saved universe. A previously saved PlainText file should be able to be read in and assigned to the current universe. Opening should also resize the current universe to match the size of the file being read.
-7) Show the current generation. The current generation should be able to be displayed in a status strip.
-8) Show the current number of living cells. The current number of living cells should be displayed in a status strip.
 9) Controlling how many milliseconds between new generations.The number of milliseconds between new generations should be adjustable through a dialog box.
 10)Controlling the current size of the universe. The width and height of the current universe should be able to be chosen through a modal dialog box.
 11)Displaying the neighbor count in each cell. Render the neighbor count for each individual cell. The user should be able to toggle this feature on and off using the View menu.
