@@ -37,6 +37,12 @@ namespace GameOfLife
 
         int intervalMilliseconds = 100;
 
+        int mapRows = 32;
+        int mapCols = 16;
+
+
+        bool edgeType = true; //False= wrap around            True= ends
+
         public Form1()
         {
             InitializeComponent();
@@ -45,8 +51,55 @@ namespace GameOfLife
             timer.Interval = intervalMilliseconds; // milliseconds
             timer.Tick += Timer_Tick;
             timer.Enabled = true; // start timer running
+
+
+            //Use settings to set variables.
+
+
+            ///////////////////////////
+
+
+            SetGrid(32, 16);
         }
 
+        private void SetGrid(int rows, int cols)
+        {
+            // The universe array
+            universe = new bool[rows, cols];
+            neighbors = new int[rows, cols];
+        }
+
+
+        private int CheckNeighbor(int x, int y)
+        {
+            if(!edgeType) //Wrap around mode
+            {
+                if(x<0)
+                {
+                    x += universe.GetLength(0);
+                }
+                else if (x==universe.GetLength(0))
+                {
+                    x = 0;
+                }
+
+                if(y<0)
+                {
+                    y += universe.GetLength(1);
+                }
+                else if (y == universe.GetLength(1))
+                {
+                    y = 0;
+                }
+            }
+
+            if(x>=0 && y>= 0 && x< universe.GetLength(0) && y< universe.GetLength(1) && universe[x,y]) // If x or y is out of bounds, just return 0
+            {
+                return 1;
+            }
+
+            return 0;
+        }
         // Calculate the next generation of cells
         private void NextGeneration()
         {
@@ -57,71 +110,15 @@ namespace GameOfLife
                 for (int x = 0; x < universe.GetLength(0); x++)
                 {
                     neighbors[x, y] = 0;
+                    neighbors[x, y] += CheckNeighbor(x - 1, y - 1);
+                    neighbors[x, y] += CheckNeighbor(x, y - 1);
+                    neighbors[x, y] += CheckNeighbor(x + 1, y - 1);
+                    neighbors[x, y] += CheckNeighbor(x - 1, y);
+                    neighbors[x, y] += CheckNeighbor(x + 1, y);
+                    neighbors[x, y] += CheckNeighbor(x - 1, y + 1);
+                    neighbors[x, y] += CheckNeighbor(x, y + 1);
+                    neighbors[x, y] += CheckNeighbor(x + 1, y + 1);
 
-                    //Look up
-                    if (y > 0)
-                    {
-                        if (universe[x, y - 1])
-                        {
-                            neighbors[x, y]++;
-                        }
-                        if (x > 0)//UP Left
-                        {
-                            if (universe[x - 1, y - 1])
-                            {
-                                neighbors[x, y]++;
-                            }
-                        }
-                        if (x < universe.GetLength(0) - 1)// UP right
-                        {
-                            if (universe[x + 1, y - 1])
-                            {
-                                neighbors[x, y]++;
-                            }
-                        }
-                    }
-                    //Look Down
-                    if (y < universe.GetLength(1)-1)
-                    {
-                        if (universe[x, y + 1])
-                        {
-                            neighbors[x, y]++;
-                        }
-                        if (x > 0)//Down Left
-                        {
-                            if (universe[x-1, y + 1])
-                            {
-                                neighbors[x, y]++;
-                            }
-                        }
-                        if (x < universe.GetLength(0) - 1)// Down right
-                        {
-                            if (universe[x + 1, y + 1])
-                            {
-                                neighbors[x, y]++;
-                            }
-                        }
-                    }
-
-                    //Look Left
-                    if (x > 0)
-                    {
-                        if (universe[x-1, y])
-                        {
-                            neighbors[x, y]++;
-                        }
-                    }
-                    //Look Down
-                    if (x < universe.GetLength(0) - 1)
-                    {
-                        if (universe[x+1, y])
-                        {
-                            neighbors[x, y]++;
-                        }
-                    }
-
-
-                   
                 }
             }
 
@@ -425,6 +422,5 @@ namespace GameOfLife
 4) Context sensitive menu. Implement a ContextMenuStrip that allows the user to change various options in the application.
 5) Heads up display. A heads up display that indicates current generation, cell count, boundary type, universe size and any other information you wish to display. The user should be able to toggle this display on and off through a View menu and a context sensitive menu (if one is implemented as an advanced feature.)
 6) Settings.When universe size, timer interval and color options are changed by the user they should persist even after the program has been closed and then opened again. Also, the user should have two menu items Reset and Reload. Reload will revert back to the last saved settings and Reset will return the applications default settings for these values.
-
 
 */
