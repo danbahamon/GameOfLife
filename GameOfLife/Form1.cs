@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -21,6 +22,7 @@ namespace GameOfLife
         bool isActive = false;
 
         // Drawing colors
+        Color backColor = Color.White;
         Color gridColor = Color.LightGray;
         //Color gridColor = Color.FromArgb(1056964863);
         Color cellColor = Color.Green;
@@ -59,7 +61,7 @@ namespace GameOfLife
             ///////////////////////////
 
 
-            SetGrid(32, 16);
+            SetGrid(mapRows, mapCols);
         }
 
         private void SetGrid(int rows, int cols)
@@ -67,6 +69,10 @@ namespace GameOfLife
             // The universe array
             universe = new bool[rows, cols];
             neighbors = new int[rows, cols];
+            ClearScreen();
+
+            // Tell Windows you need to repaint
+            graphicsPanel1.Invalidate();
         }
 
 
@@ -238,28 +244,34 @@ namespace GameOfLife
                 // CELL Y = MOUSE Y / CELL HEIGHT
                 int y = e.Y / cellHeight;
 
-
-                if(universe[x,y])
+                if(x>=0 && x<mapRows && y>=0 && y< mapCols)
                 {
-                    TotalLiving--;
+                    if (universe[x, y])
+                    {
+                        TotalLiving--;
+                    }
+                    else
+                    {
+                        TotalLiving++;
+                    }
+                    // Toggle the cell's state
+                    universe[x, y] = !universe[x, y];
+
+                    // Tell Windows you need to repaint
+                    graphicsPanel1.Invalidate();
+
+
+                    livingCells.Text = "Living Cells = " + TotalLiving.ToString();
+
                 }
-                else
-                {
-                    TotalLiving++;
-                }
-                // Toggle the cell's state
-                universe[x, y] = !universe[x, y];
 
-                // Tell Windows you need to repaint
-                graphicsPanel1.Invalidate();
-
-
-                livingCells.Text = "Living Cells = " + TotalLiving.ToString();
+                
             }
         }
 
         private void toolStripButton1_Click(object sender, EventArgs e)//Next Generation Button
         {
+            isActive = false;
             NextGeneration();
         }
 
@@ -403,6 +415,251 @@ namespace GameOfLife
 
             timer.Interval = intervalMilliseconds;
         }
+
+        private void mapSizeToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            MapDialog dlg = new MapDialog();
+
+            dlg.rowsCount.Value = mapRows;
+            dlg.colsCount.Value = mapCols;
+
+            if (DialogResult.OK == dlg.ShowDialog())
+            {
+                mapRows = (int)dlg.rowsCount.Value;
+                mapCols = (int)dlg.colsCount.Value;
+
+                SetGrid(mapRows, mapCols);
+            }
+
+
+        }
+
+        private void wrapAroundToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            EdgeStyle dlg = new EdgeStyle();
+
+
+            if(edgeType) //true = finite, false =wrap
+            {
+                dlg.finiteBtn.Checked = true;
+            }
+            else
+            {
+                dlg.wrapBtn.Checked = true;
+            }
+            
+
+            if (DialogResult.OK == dlg.ShowDialog())
+            {
+                if(dlg.finiteBtn.Checked)
+                {
+                    edgeType = true;
+                }
+                else
+                {
+                    edgeType = false;
+                }
+            }
+        }
+
+        private void backgroundColorToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            ColorDialog dlg = new ColorDialog();
+            dlg.Color = backColor;
+
+            if (DialogResult.OK == dlg.ShowDialog())
+            {
+                backColor = dlg.Color;
+                graphicsPanel1.BackColor = backColor;
+            }
+        }
+
+        private void cellColorToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            ColorDialog dlg = new ColorDialog();
+            dlg.Color = cellColor;
+
+            if (DialogResult.OK == dlg.ShowDialog())
+            {
+                cellColor = dlg.Color;
+
+                graphicsPanel1.Invalidate();
+            }
+
+        }
+
+        private void saveToolStripButton_Click(object sender, EventArgs e)
+        {
+            SaveFile();
+        }
+
+        private void SaveFile()
+        {
+            SaveFileDialog dlg = new SaveFileDialog();
+            dlg.Filter = "All Files|*.*|Cells|*.cells";
+            dlg.FilterIndex = 2; dlg.DefaultExt = "cells";
+
+
+            if (DialogResult.OK == dlg.ShowDialog())
+            {
+                StreamWriter writer = new StreamWriter(dlg.FileName);
+
+                // Write any comments you want to include first.
+                // Prefix all comment strings with an exclamation point.
+                // Use WriteLine to write the strings to the file. 
+                // It appends a CRLF for you.
+                writer.WriteLine("!Current State");
+
+                // Iterate through the universe one row at a time.
+                for (int y = 0; y < universe.GetLength(1); y++)
+                {
+                    // Create a string to represent the current row.
+                    String currentRow = string.Empty;
+
+                    // Iterate through the current row one cell at a time.
+                    for (int x = 0; x < universe.GetLength(0); x++)
+                    {
+                        // If the universe[x,y] is alive then append 'O' (capital O)
+                        // to the row string.
+                        // Else if the universe[x,y] is dead then append '.' (period)
+                        // to the row string.
+                        if (universe[x,y])
+                        {
+                            currentRow += 'O';
+                        }
+                        else
+                        {
+                            currentRow += '.';
+                        }
+
+                        
+                    }
+
+                    // Once the current row has been read through and the 
+                    // string constructed then write it to the file using WriteLine.
+                    writer.WriteLine(currentRow);
+                }
+
+                // After all rows and columns have been written then close the file.
+                writer.Close();
+            }
+        }
+
+        private void openToolStripButton_Click(object sender, EventArgs e)
+        {
+            OpenFile();
+        }
+
+        private void OpenFile()
+        {
+            OpenFileDialog dlg = new OpenFileDialog();
+            dlg.Filter = "All Files|*.*|Cells|*.cells";
+            dlg.FilterIndex = 2;
+
+            if (DialogResult.OK == dlg.ShowDialog())
+            {
+                StreamReader reader = new StreamReader(dlg.FileName);
+
+                // variables to calculate the width and height
+                // of the data in the file.
+                mapRows = 0;
+                mapCols = 0;
+
+                // Iterate through the file once to get its size.
+                while (!reader.EndOfStream)
+                {
+                    // Read one row at a time.
+                    string row = reader.ReadLine();
+
+                    // If the row begins with '!' then it is a comment
+                    // and should be ignored.
+                    if(row.Length>0)
+                    {
+                        if (row[0] == '!')
+                        {
+                            //It is a comment
+                        }
+                        else
+                        {
+                            // If the row is not a comment then it is a row of cells.
+                            // Increment the maxHeight variable for each row read.
+                            mapCols++;
+
+                            // Get the length of the current row string
+                            // and adjust the maxWidth variable if necessary.
+                            if (row.Length > mapCols)
+                            {
+                                mapRows = row.Length;
+                            }
+
+
+                        }
+                    }
+                   
+
+
+                }
+
+                // Resize the current universe and scratchPad
+                // to the width and height of the file calculated above.
+                SetGrid(mapRows, mapCols);
+
+                // Reset the file pointer back to the beginning of the file.
+                reader.BaseStream.Seek(0, SeekOrigin.Begin);
+
+                // Iterate through the file again, this time reading in the cells.
+                int currRow = 0;
+                while (!reader.EndOfStream)
+                {
+                    // Read one row at a time.
+                    string row = reader.ReadLine();
+                    if (row.Length > 0)
+                    {
+                        // If the row begins with '!' then
+                        // it is a comment and should be ignored.
+                        if (row[0] == '!')
+                        {
+                            //It is a comment
+                        }
+                        else
+                        {
+                            // If the row is not a comment then 
+                            // it is a row of cells and needs to be iterated through.
+                            for (int xPos = 0; xPos < row.Length; xPos++)
+                            {
+                                // If row[xPos] is a 'O' (capital O) then
+                                // set the corresponding cell in the universe to alive.
+                                if (row[xPos] == 'O')
+                                {
+                                    universe[xPos,currRow] = true;
+                                }
+
+                                // If row[xPos] is a '.' (period) then
+                                // set the corresponding cell in the universe to dead.
+                            }
+                            currRow++;
+
+                        }
+                    }
+                    
+
+                    
+                }
+
+                // Close the file.
+                reader.Close();
+            }
+        }
+
+        private void openToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            OpenFile();
+        }
+
+        private void saveToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            SaveFile();
+        }
     }
 }
 
@@ -412,13 +669,8 @@ namespace GameOfLife
 ///TODO LIST
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*
-5) Saving the current universe to a text file. The current state and size of the universe should be able to be saved in PlainText file format. The file name should be chosen by the user with a save file dialog box.
-6) Opening a previously saved universe. A previously saved PlainText file should be able to be read in and assigned to the current universe. Opening should also resize the current universe to match the size of the file being read.
-10)Controlling the current size of the universe. The width and height of the current universe should be able to be chosen through a modal dialog box.
 11)Displaying the neighbor count in each cell. Render the neighbor count for each individual cell. The user should be able to toggle this feature on and off using the View menu.
 12)View Menu Items. Implement a View Menu that toggles the grid on an off, toggles the neighbor count display and toggles the heads up display (if the heads up is implemented as an advanced feature.)
-2) Game Colors. The user should be able to select individual colors for the grid, the background and living cells through a modal dialog box.
-3) Universe boundary behavior. The user should choose how the game is going to treat the edges of the universe. The two basic options would be toroidal (the edges wrap around to the other side) or finite(cells outside the universe are considered dead.)
 4) Context sensitive menu. Implement a ContextMenuStrip that allows the user to change various options in the application.
 5) Heads up display. A heads up display that indicates current generation, cell count, boundary type, universe size and any other information you wish to display. The user should be able to toggle this display on and off through a View menu and a context sensitive menu (if one is implemented as an advanced feature.)
 6) Settings.When universe size, timer interval and color options are changed by the user they should persist even after the program has been closed and then opened again. Also, the user should have two menu items Reset and Reload. Reload will revert back to the last saved settings and Reset will return the applications default settings for these values.
