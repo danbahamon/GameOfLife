@@ -20,11 +20,15 @@ namespace GameOfLife
         int TotalLiving = 0;
 
         bool isActive = false;
+        bool showHUD = false;
+        bool showNeighbors = false;
+        bool showGrid = true;
 
         // Drawing colors
         Color backColor = Color.White;
         Color gridColor = Color.LightGray;
         //Color gridColor = Color.FromArgb(1056964863);
+        Color HUDColor = Color.FromArgb(185, 255, 255, 255);
         Color cellColor = Color.Green;
 
         // The Timer class
@@ -48,7 +52,6 @@ namespace GameOfLife
         public Form1()
         {
             InitializeComponent();
-
 
 
 
@@ -113,10 +116,10 @@ namespace GameOfLife
 
             return 0;
         }
-        // Calculate the next generation of cells
-        private void NextGeneration()
-        {
 
+
+        private void CountNeighbors()
+        {
             //Loop all the cells and count the amount of neighbors each has.
             for (int y = 0; y < universe.GetLength(1); y++)
             {
@@ -134,6 +137,13 @@ namespace GameOfLife
 
                 }
             }
+        }
+
+        // Calculate the next generation of cells
+        private void NextGeneration()
+        {
+            CountNeighbors();
+            
 
             TotalLiving = 0;
 
@@ -178,6 +188,7 @@ namespace GameOfLife
             toolStripStatusLabelGenerations.Text = "Generations = " + generations.ToString();
             livingCells.Text = "Living Cells =" + TotalLiving.ToString();
 
+            CountNeighbors();
             // Tell Windows you need to repaint
             graphicsPanel1.Invalidate();
         }
@@ -202,7 +213,16 @@ namespace GameOfLife
             int cellHeight = graphicsPanel1.ClientSize.Height / universe.GetLength(1);
 
             // A Pen for drawing the grid lines (color, width)
-            Pen gridPen = new Pen(gridColor, 1);
+            Pen gridPen;
+            if (showGrid)
+            {
+                gridPen = new Pen(gridColor, 1);
+            }
+            else
+            {
+                gridPen = new Pen(Color.FromArgb(0,255,255,255),1);
+            }
+            
 
             // A Brush for filling living cells interiors (color)
             Brush cellBrush = new SolidBrush(cellColor);
@@ -228,8 +248,60 @@ namespace GameOfLife
 
                     // Outline the cell with a pen
                     e.Graphics.DrawRectangle(gridPen, cellRect.X, cellRect.Y, cellRect.Width, cellRect.Height);
+
+
+                    //////////////////////////////////////////////////////////////////////////
+                    if(showNeighbors)
+                    {
+                        if (neighbors[x, y] > 0)
+                        {
+                            Font font = new Font("Arial", 5f);
+
+                            StringFormat stringFormat = new StringFormat();
+                            stringFormat.Alignment = StringAlignment.Center;
+                            stringFormat.LineAlignment = StringAlignment.Center;
+
+                            Rectangle rect = new Rectangle(cellRect.X, cellRect.Y, cellRect.Width, cellRect.Height);
+
+
+                            e.Graphics.DrawString(neighbors[x, y].ToString(), font, Brushes.Gray, rect, stringFormat);
+                        }
+                    }
+                    
+
+
+                    //////////////////////////////////////////////////////////////////////////
                 }
             }
+
+            //HUD current generation, cell count, boundary type, universe size
+            if(showHUD)
+            {
+                Font font = new Font("Arial", 10f);
+
+
+
+                Rectangle rect = new Rectangle(0, 0, 0, 0);
+
+                string HUDText = "";
+                HUDText += "Current Generation: " + generations.ToString()+"\n";
+                HUDText += "Cell Count: " + livingCells.ToString()+"\n";
+                if(edgeType)
+                {
+                    HUDText += "Boundary Type: Finite" + "\n";
+                }
+                else
+                {
+                    HUDText += "Boundary Type: Wrap Around" + "\n";
+                }
+                HUDText += "Universe Size: " + mapRows.ToString()+"x"+ mapCols.ToString() + "\n";
+
+
+
+
+                e.Graphics.DrawString(HUDText, font, Brushes.Black, rect);
+            }
+
 
             // Cleaning up pens and brushes
             gridPen.Dispose();
@@ -263,7 +335,7 @@ namespace GameOfLife
                     }
                     // Toggle the cell's state
                     universe[x, y] = !universe[x, y];
-
+                    CountNeighbors();
                     // Tell Windows you need to repaint
                     graphicsPanel1.Invalidate();
 
@@ -318,7 +390,7 @@ namespace GameOfLife
                     universe[x, y] = false;
                 }
             }
-
+            CountNeighbors();
             // Tell Windows you need to repaint
             graphicsPanel1.Invalidate();
         }
@@ -366,8 +438,7 @@ namespace GameOfLife
 
                 }
             }
-
-
+            CountNeighbors();
             livingCells.Text = "Living Cells = "+TotalLiving.ToString();
             // Tell Windows you need to repaint
             graphicsPanel1.Invalidate();
@@ -717,6 +788,27 @@ namespace GameOfLife
             timer.Interval = intervalMilliseconds; // milliseconds
             SetGrid(mapRows, mapCols);
         }
+
+        private void hUDToolStripMenuItem_CheckedChanged(object sender, EventArgs e)
+        {
+            showHUD = !showHUD;
+
+            graphicsPanel1.Invalidate();
+        }
+
+        private void neighborsToolStripMenuItem_CheckedChanged(object sender, EventArgs e)
+        {
+            showNeighbors = !showNeighbors;
+
+            graphicsPanel1.Invalidate();
+        }
+
+        private void gridToolStripMenuItem_CheckedChanged(object sender, EventArgs e)
+        {
+            showGrid = !showGrid;
+
+            graphicsPanel1.Invalidate();
+        }
     }
 }
 
@@ -726,9 +818,7 @@ namespace GameOfLife
 ///TODO LIST
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*
-11)Displaying the neighbor count in each cell. Render the neighbor count for each individual cell. The user should be able to toggle this feature on and off using the View menu.
 12)View Menu Items. Implement a View Menu that toggles the grid on an off, toggles the neighbor count display and toggles the heads up display (if the heads up is implemented as an advanced feature.)
 4) Context sensitive menu. Implement a ContextMenuStrip that allows the user to change various options in the application.
-5) Heads up display. A heads up display that indicates current generation, cell count, boundary type, universe size and any other information you wish to display. The user should be able to toggle this display on and off through a View menu and a context sensitive menu (if one is implemented as an advanced feature.)
 
 */
