@@ -809,6 +809,16 @@ namespace GameOfLife
 
             graphicsPanel1.Invalidate();
         }
+
+        private void backgroundColorToolStripMenuItem1_Click(object sender, EventArgs e)
+        {
+            gridToolStripMenuItem.Checked = !showGrid;
+        }
+
+        private void aliveColorToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            hUDToolStripMenuItem.Checked = !showHUD;
+        }
     }
 }
 
@@ -818,7 +828,5 @@ namespace GameOfLife
 ///TODO LIST
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*
-12)View Menu Items. Implement a View Menu that toggles the grid on an off, toggles the neighbor count display and toggles the heads up display (if the heads up is implemented as an advanced feature.)
-4) Context sensitive menu. Implement a ContextMenuStrip that allows the user to change various options in the application.
 
 */
