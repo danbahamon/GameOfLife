@@ -3,10 +3,10 @@
   <Profiles />
   <Settings>
     <Setting Name="Rows" Type="System.Int32" Scope="User">
-      <Value Profile="(Default)">32</Value>
+      <Value Profile="(Default)">150</Value>
     </Setting>
     <Setting Name="Cols" Type="System.Int32" Scope="User">
-      <Value Profile="(Default)">16</Value>
+      <Value Profile="(Default)">75</Value>
     </Setting>
     <Setting Name="BackColor" Type="System.Drawing.Color" Scope="User">
       <Value Profile="(Default)" />

@@ -16,8 +16,8 @@ namespace GameOfLife
         // The universe array
         bool[,] universe = new bool[32, 16];
         int[,] neighbors = new int[32,16];
-        int[,] heatMap = new int[32, 16];
-        int[,] activeGen = new int[32, 16];
+        int[,] heatMap = new int[32, 16]; //Tracks how often the cell has been alive.
+        int[,] activeGen = new int[32, 16]; //Tracks how long the cell has been alive.
 
         int TotalLiving = 0;
 
@@ -53,7 +53,7 @@ namespace GameOfLife
         int mapCols = 16;
 
 
-        bool edgeType = true; //False= wrap around            True= ends
+        bool edgeType = false; //False= wrap around            True= ends
 
         public Form1()
         {
@@ -77,9 +77,11 @@ namespace GameOfLife
             timer.Interval = intervalMilliseconds; // milliseconds
             timer.Tick += Timer_Tick;
             timer.Enabled = true; // start timer running
+
+            MoldModeText.Text = "Mold Mode = OFF";
             SetGrid(mapRows, mapCols);
         }
-
+        //Resets the arrays to match the new size.
         private void SetGrid(int rows, int cols)
         {
             // The universe array
@@ -269,38 +271,6 @@ namespace GameOfLife
                         cellRect.Width = (float)(cellWidth);
                         cellRect.Height = (float)(cellHeight);
 
-                        /*
-                         if(heatMap[x,y]<255)
-                         {
-                             e.Graphics.FillRectangle(new SolidBrush(Color.FromArgb((heatMap[x, y]), 0, 255, 0)), cellRect);
-                         }
-                         else
-                         {
-                             e.Graphics.FillRectangle(new SolidBrush(Color.FromArgb((255), 0, 255, 0)), cellRect);
-                         }
-
-
-                         if (heatMap[x, y] < 255)
-                         {
-                             e.Graphics.FillRectangle(new SolidBrush(Color.FromArgb((heatMap[x, y]), (activeGen[x, y] / (x+1)) % 255, activeGen[x, y] % 255, (activeGen[x, y] / (y+1)) % 255)), cellRect);
-                         }
-                         else
-                         {
-                             e.Graphics.FillRectangle(new SolidBrush(Color.FromArgb(255, (activeGen[x, y] / (heatMap[x, y] + 1)) % 255, activeGen[x, y] % 255, (heatMap[x, y] / (y+1)) % 255)), cellRect);
-
-                         }
-
-
-                         if (heatMap[x, y] < 255)
-                         {
-                             e.Graphics.FillRectangle(new SolidBrush(Color.FromArgb((heatMap[x, y]), 0, activeGen[x, y] % 155+100, 0)), cellRect);
-                         }
-                         else
-                         {
-                             e.Graphics.FillRectangle(new SolidBrush(Color.FromArgb(255, 0, activeGen[x, y] % 155+100, 0)), cellRect);
-
-                         }*/
-
                         moldLevel = (activeGen[x, y] / (float)generations)*255;
 
 
@@ -373,34 +343,35 @@ namespace GameOfLife
                     }
                 }
 
-                //HUD current generation, cell count, boundary type, universe size
-                if (showHUD)
+                
+
+            }
+            //HUD current generation, cell count, boundary type, universe size
+            if (showHUD)
+            {
+                Font font = new Font("Arial", 10f);
+
+
+
+                Rectangle rect = new Rectangle(0, 0, 0, 0);
+
+                string HUDText = "";
+                HUDText += "Current Generation: " + generations.ToString() + "\n";
+                HUDText += "Cell Count: " + livingCells.ToString() + "\n";
+                if (edgeType)
                 {
-                    Font font = new Font("Arial", 10f);
-
-
-
-                    Rectangle rect = new Rectangle(0, 0, 0, 0);
-
-                    string HUDText = "";
-                    HUDText += "Current Generation: " + generations.ToString() + "\n";
-                    HUDText += "Cell Count: " + livingCells.ToString() + "\n";
-                    if (edgeType)
-                    {
-                        HUDText += "Boundary Type: Finite" + "\n";
-                    }
-                    else
-                    {
-                        HUDText += "Boundary Type: Wrap Around" + "\n";
-                    }
-                    HUDText += "Universe Size: " + mapRows.ToString() + "x" + mapCols.ToString() + "\n";
-
-
-
-
-                    e.Graphics.DrawString(HUDText, font, Brushes.Black, rect);
+                    HUDText += "Boundary Type: Finite" + "\n";
                 }
+                else
+                {
+                    HUDText += "Boundary Type: Wrap Around" + "\n";
+                }
+                HUDText += "Universe Size: " + mapRows.ToString() + "x" + mapCols.ToString() + "\n";
 
+
+
+
+                e.Graphics.DrawString(HUDText, font, Brushes.Black, rect);
             }
             // Cleaning up pens and brushes
             gridPen.Dispose();
@@ -858,8 +829,8 @@ namespace GameOfLife
         private void resetSettingsToolStripMenuItem_Click(object sender, EventArgs e)
         {
             intervalMilliseconds = 100;
-            mapRows = 32;
-            mapCols = 16;
+            mapRows = 150;
+            mapCols = 75;
             backColor = Color.White;
             cellColor = Color.Green;
 
@@ -928,6 +899,15 @@ namespace GameOfLife
         {
             showHeatMap = !showHeatMap;
             graphicsPanel1.Invalidate();
+
+            if(showHeatMap)
+            {
+                MoldModeText.Text = "Mold Mode = ON";
+            }
+            else
+            {
+                MoldModeText.Text = "Mold Mode = OFF";
+            }
         }
     }
 }
