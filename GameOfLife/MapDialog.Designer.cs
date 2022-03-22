@@ -42,6 +42,11 @@ namespace GameOfLife
             // rowsCount
             // 
             this.rowsCount.Location = new System.Drawing.Point(101, 28);
+            this.rowsCount.Maximum = new decimal(new int[] {
+            1000,
+            0,
+            0,
+            0});
             this.rowsCount.Name = "rowsCount";
             this.rowsCount.Size = new System.Drawing.Size(62, 22);
             this.rowsCount.TabIndex = 0;
@@ -49,6 +54,11 @@ namespace GameOfLife
             // colsCount
             // 
             this.colsCount.Location = new System.Drawing.Point(101, 56);
+            this.colsCount.Maximum = new decimal(new int[] {
+            1000,
+            0,
+            0,
+            0});
             this.colsCount.Name = "colsCount";
             this.colsCount.Size = new System.Drawing.Size(62, 22);
             this.colsCount.TabIndex = 1;

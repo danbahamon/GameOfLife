@@ -16,6 +16,8 @@ namespace GameOfLife
         // The universe array
         bool[,] universe = new bool[32, 16];
         int[,] neighbors = new int[32,16];
+        int[,] heatMap = new int[32, 16];
+        int[,] activeGen = new int[32, 16];
 
         int TotalLiving = 0;
 
@@ -23,6 +25,8 @@ namespace GameOfLife
         bool showHUD = false;
         bool showNeighbors = false;
         bool showGrid = true;
+        bool showHeatMap = false;
+        int maxHeat = 0;
 
         // Drawing colors
         Color backColor = Color.White;
@@ -36,6 +40,8 @@ namespace GameOfLife
 
         // Generation count
         int generations = 0;
+
+        float moldLevel = 0.0f;
 
 
         //Rand Seed
@@ -79,6 +85,10 @@ namespace GameOfLife
             // The universe array
             universe = new bool[rows, cols];
             neighbors = new int[rows, cols];
+            heatMap = new int[rows, cols];
+            activeGen = new int[rows, cols];
+
+
             ClearScreen();
 
             // Tell Windows you need to repaint
@@ -158,6 +168,7 @@ namespace GameOfLife
                         if (neighbors[x, y] == 3)
                         {
                             universe[x, y] = true;
+                            activeGen[x, y] = generations;
                             TotalLiving++;
                         }
                     }
@@ -172,6 +183,20 @@ namespace GameOfLife
                         {
                             universe[x, y] = false;
                         }
+                    }
+
+                    if(universe[x,y])
+                    {
+                        
+                        heatMap[x, y]+=95;
+                        if(heatMap[x,y]>maxHeat)
+                        {
+                            maxHeat = heatMap[x, y];
+                        }
+                    }
+                    else
+                    {
+                        heatMap[x,y] = (int)(heatMap[x, y]*0.999);
                     }
                 }
             }
@@ -206,11 +231,13 @@ namespace GameOfLife
 
         private void graphicsPanel1_Paint(object sender, PaintEventArgs e)
         {
+
+
             // Calculate the width and height of each cell in pixels
             // CELL WIDTH = WINDOW WIDTH / NUMBER OF CELLS IN X
-            int cellWidth = graphicsPanel1.ClientSize.Width / universe.GetLength(0);
+            float cellWidth = (float)graphicsPanel1.ClientSize.Width / universe.GetLength(0);
             // CELL HEIGHT = WINDOW HEIGHT / NUMBER OF CELLS IN Y
-            int cellHeight = graphicsPanel1.ClientSize.Height / universe.GetLength(1);
+            float cellHeight = (float)graphicsPanel1.ClientSize.Height / universe.GetLength(1);
 
             // A Pen for drawing the grid lines (color, width)
             Pen gridPen;
@@ -227,82 +254,154 @@ namespace GameOfLife
             // A Brush for filling living cells interiors (color)
             Brush cellBrush = new SolidBrush(cellColor);
 
-            // Iterate through the universe in the y, top to bottom
-            for (int y = 0; y < universe.GetLength(1); y++)
+            if (showHeatMap && maxHeat>0)
             {
-                // Iterate through the universe in the x, left to right
-                for (int x = 0; x < universe.GetLength(0); x++)
+                // Iterate through the universe in the y, top to bottom
+                for (int y = 0; y < universe.GetLength(1); y++)
                 {
-                    // A rectangle to represent each cell in pixels
-                    Rectangle cellRect = Rectangle.Empty;
-                    cellRect.X = x * cellWidth;
-                    cellRect.Y = y * cellHeight;
-                    cellRect.Width = cellWidth;
-                    cellRect.Height = cellHeight;
-
-                    // Fill the cell with a brush if alive
-                    if (universe[x, y] == true)
+                    // Iterate through the universe in the x, left to right
+                    for (int x = 0; x < universe.GetLength(0); x++)
                     {
-                        e.Graphics.FillRectangle(cellBrush, cellRect);
-                    }
+                        // A rectangle to represent each cell in pixels
+                        RectangleF cellRect = RectangleF.Empty;
+                        cellRect.X = (float)(x * cellWidth);
+                        cellRect.Y = (float)(y * cellHeight);
+                        cellRect.Width = (float)(cellWidth);
+                        cellRect.Height = (float)(cellHeight);
 
-                    // Outline the cell with a pen
-                    e.Graphics.DrawRectangle(gridPen, cellRect.X, cellRect.Y, cellRect.Width, cellRect.Height);
+                        /*
+                         if(heatMap[x,y]<255)
+                         {
+                             e.Graphics.FillRectangle(new SolidBrush(Color.FromArgb((heatMap[x, y]), 0, 255, 0)), cellRect);
+                         }
+                         else
+                         {
+                             e.Graphics.FillRectangle(new SolidBrush(Color.FromArgb((255), 0, 255, 0)), cellRect);
+                         }
 
 
-                    //////////////////////////////////////////////////////////////////////////
-                    if(showNeighbors)
-                    {
-                        if (neighbors[x, y] > 0)
+                         if (heatMap[x, y] < 255)
+                         {
+                             e.Graphics.FillRectangle(new SolidBrush(Color.FromArgb((heatMap[x, y]), (activeGen[x, y] / (x+1)) % 255, activeGen[x, y] % 255, (activeGen[x, y] / (y+1)) % 255)), cellRect);
+                         }
+                         else
+                         {
+                             e.Graphics.FillRectangle(new SolidBrush(Color.FromArgb(255, (activeGen[x, y] / (heatMap[x, y] + 1)) % 255, activeGen[x, y] % 255, (heatMap[x, y] / (y+1)) % 255)), cellRect);
+
+                         }
+
+
+                         if (heatMap[x, y] < 255)
+                         {
+                             e.Graphics.FillRectangle(new SolidBrush(Color.FromArgb((heatMap[x, y]), 0, activeGen[x, y] % 155+100, 0)), cellRect);
+                         }
+                         else
+                         {
+                             e.Graphics.FillRectangle(new SolidBrush(Color.FromArgb(255, 0, activeGen[x, y] % 155+100, 0)), cellRect);
+
+                         }*/
+
+                        moldLevel = (activeGen[x, y] / (float)generations)*255;
+
+
+                        if (heatMap[x, y] < 255)
                         {
-                            Font font = new Font("Arial", 5f);
-
-                            StringFormat stringFormat = new StringFormat();
-                            stringFormat.Alignment = StringAlignment.Center;
-                            stringFormat.LineAlignment = StringAlignment.Center;
-
-                            Rectangle rect = new Rectangle(cellRect.X, cellRect.Y, cellRect.Width, cellRect.Height);
-
-
-                            e.Graphics.DrawString(neighbors[x, y].ToString(), font, Brushes.Gray, rect, stringFormat);
+                            e.Graphics.FillRectangle(new SolidBrush(Color.FromArgb((heatMap[x, y]), 0, (int)(uint)moldLevel, 0)), cellRect);
                         }
+                        else
+                        {
+                            e.Graphics.FillRectangle(new SolidBrush(Color.FromArgb(255, 0, (int)(uint)moldLevel, 0)), cellRect);
+
+                        }
+
+
+
+
+
+
+
                     }
-                    
-
-
-                    //////////////////////////////////////////////////////////////////////////
                 }
             }
-
-            //HUD current generation, cell count, boundary type, universe size
-            if(showHUD)
+            else
             {
-                Font font = new Font("Arial", 10f);
 
-
-
-                Rectangle rect = new Rectangle(0, 0, 0, 0);
-
-                string HUDText = "";
-                HUDText += "Current Generation: " + generations.ToString()+"\n";
-                HUDText += "Cell Count: " + livingCells.ToString()+"\n";
-                if(edgeType)
+                // Iterate through the universe in the y, top to bottom
+                for (int y = 0; y < universe.GetLength(1); y++)
                 {
-                    HUDText += "Boundary Type: Finite" + "\n";
+                    // Iterate through the universe in the x, left to right
+                    for (int x = 0; x < universe.GetLength(0); x++)
+                    {
+                        // A rectangle to represent each cell in pixels
+                        Rectangle cellRect = Rectangle.Empty;
+                        cellRect.X = (int)(x * cellWidth);
+                        cellRect.Y = (int)(y * cellHeight);
+                        cellRect.Width = (int)(cellWidth);
+                        cellRect.Height = (int)(cellHeight);
+
+                        // Fill the cell with a brush if alive
+                        if (universe[x, y] == true)
+                        {
+                            e.Graphics.FillRectangle(cellBrush, cellRect);
+                        }
+
+                        // Outline the cell with a pen
+                        e.Graphics.DrawRectangle(gridPen, cellRect.X, cellRect.Y, cellRect.Width, cellRect.Height);
+
+
+                        //////////////////////////////////////////////////////////////////////////
+                        if (showNeighbors)
+                        {
+                            if (neighbors[x, y] > 0)
+                            {
+                                Font font = new Font("Arial", 5f);
+
+                                StringFormat stringFormat = new StringFormat();
+                                stringFormat.Alignment = StringAlignment.Center;
+                                stringFormat.LineAlignment = StringAlignment.Center;
+
+                                Rectangle rect = new Rectangle(cellRect.X, cellRect.Y, cellRect.Width, cellRect.Height);
+
+
+                                e.Graphics.DrawString(neighbors[x, y].ToString(), font, Brushes.Gray, rect, stringFormat);
+                            }
+                        }
+
+
+
+                        //////////////////////////////////////////////////////////////////////////
+                    }
                 }
-                else
+
+                //HUD current generation, cell count, boundary type, universe size
+                if (showHUD)
                 {
-                    HUDText += "Boundary Type: Wrap Around" + "\n";
+                    Font font = new Font("Arial", 10f);
+
+
+
+                    Rectangle rect = new Rectangle(0, 0, 0, 0);
+
+                    string HUDText = "";
+                    HUDText += "Current Generation: " + generations.ToString() + "\n";
+                    HUDText += "Cell Count: " + livingCells.ToString() + "\n";
+                    if (edgeType)
+                    {
+                        HUDText += "Boundary Type: Finite" + "\n";
+                    }
+                    else
+                    {
+                        HUDText += "Boundary Type: Wrap Around" + "\n";
+                    }
+                    HUDText += "Universe Size: " + mapRows.ToString() + "x" + mapCols.ToString() + "\n";
+
+
+
+
+                    e.Graphics.DrawString(HUDText, font, Brushes.Black, rect);
                 }
-                HUDText += "Universe Size: " + mapRows.ToString()+"x"+ mapCols.ToString() + "\n";
 
-
-
-
-                e.Graphics.DrawString(HUDText, font, Brushes.Black, rect);
             }
-
-
             // Cleaning up pens and brushes
             gridPen.Dispose();
             cellBrush.Dispose();
@@ -377,6 +476,7 @@ namespace GameOfLife
         {
             isActive = false;
             generations = 0;
+            maxHeat = 0;
             // Update status strip generations
             toolStripStatusLabelGenerations.Text = "Generations = " + generations.ToString();
             livingCells.Text = "Living Cells = 0";
@@ -388,6 +488,9 @@ namespace GameOfLife
                 for (int x = 0; x < universe.GetLength(0); x++)
                 {
                     universe[x, y] = false;
+                    neighbors[x, y] = 0;
+                    heatMap[x, y] = 0;
+                    activeGen[x, y] = 0;
                 }
             }
             CountNeighbors();
@@ -413,7 +516,8 @@ namespace GameOfLife
             generations = 0;
             // Update status strip generations
             toolStripStatusLabelGenerations.Text = "Generations = " + generations.ToString();
-            
+
+            ClearScreen();
 
             isActive = false;
 
@@ -818,6 +922,12 @@ namespace GameOfLife
         private void aliveColorToolStripMenuItem_Click(object sender, EventArgs e)
         {
             hUDToolStripMenuItem.Checked = !showHUD;
+        }
+
+        private void moldModeToolStripMenuItem_CheckedChanged(object sender, EventArgs e)
+        {
+            showHeatMap = !showHeatMap;
+            graphicsPanel1.Invalidate();
         }
     }
 }

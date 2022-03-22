@@ -84,6 +84,7 @@ namespace GameOfLife
             this.backgroundColorToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.aliveColorToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.graphicsPanel1 = new GameOfLife.GraphicsPanel();
+            this.moldModeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.toolStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
@@ -317,7 +318,8 @@ namespace GameOfLife
             this.viewToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.hUDToolStripMenuItem,
             this.neighborsToolStripMenuItem,
-            this.gridToolStripMenuItem});
+            this.gridToolStripMenuItem,
+            this.moldModeToolStripMenuItem});
             this.viewToolStripMenuItem.Name = "viewToolStripMenuItem";
             this.viewToolStripMenuItem.Size = new System.Drawing.Size(55, 24);
             this.viewToolStripMenuItem.Text = "View";
@@ -543,6 +545,14 @@ namespace GameOfLife
             this.graphicsPanel1.Paint += new System.Windows.Forms.PaintEventHandler(this.graphicsPanel1_Paint);
             this.graphicsPanel1.MouseClick += new System.Windows.Forms.MouseEventHandler(this.graphicsPanel1_MouseClick);
             // 
+            // moldModeToolStripMenuItem
+            // 
+            this.moldModeToolStripMenuItem.CheckOnClick = true;
+            this.moldModeToolStripMenuItem.Name = "moldModeToolStripMenuItem";
+            this.moldModeToolStripMenuItem.Size = new System.Drawing.Size(224, 26);
+            this.moldModeToolStripMenuItem.Text = "Mold Mode";
+            this.moldModeToolStripMenuItem.CheckedChanged += new System.EventHandler(this.moldModeToolStripMenuItem_CheckedChanged);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
@@ -624,6 +634,7 @@ namespace GameOfLife
         private System.Windows.Forms.ToolStripMenuItem backgroundColorToolStripMenuItem1;
         private System.Windows.Forms.ToolStripMenuItem aliveColorToolStripMenuItem;
         public System.Windows.Forms.ToolStripMenuItem gridToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem moldModeToolStripMenuItem;
     }
 }
 
